@@ -1,0 +1,4 @@
+07:03:12 [Skill] INFO  Skill:139 - Connecting to Furhat server on 10.0.2.15:1932
+07:03:12 [PizzaOrderSkill] INFO  PizzaOrderSkill:166 - Starting skill
+07:03:30 [pool-2-thread-1] INFO  WikiDataEntity: 34 - Retrieving entities from WikiData, might take up to one minute
+07:11:15 [EventSystem] INFO  PizzaOrderSkill:184 - Terminating skill
