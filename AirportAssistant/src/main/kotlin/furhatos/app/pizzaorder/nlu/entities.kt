@@ -15,15 +15,14 @@ class Topping : EnumEntity(speechRecPhrases = true) {
 
 }
 
-class ListOfDestinations : ListEntity<Destination>()
-
-class Destination : EnumEntity(speechRecPhrases = true) {
+class MealOptions : EnumEntity(speechRecPhrases = true) {
 
     override fun getEnum(lang: Language): List<String> {
-        return listOf("Paris", "Barcelona")
+        return listOf("Vegetarian", "Vegan", "Fish", "Chicken")
     }
 
 }
+
 
 
 class Place : EnumEntity() {

@@ -46,16 +46,16 @@ val CheckOrder = state {
     onEntry {
         val order = users.current.order
         when {
-            //order.source == null -> goto(RequestSource)
             order.destination == null -> goto(RequestDestination)
             order.date == null -> goto(RequestDate)
             order.travelTime == null -> goto(RequestTime)
+            order.mealOption == null -> goto(RequestMealOption)
 
             /*order.topping == null -> goto(RequestTopping)
             order.deliverTo == null -> goto(RequestDelivery)
             order.deliveryTime == null -> goto(RequestTime)*/
             else -> {
-                furhat.say("Alright, so you want to book a ticket $order")
+                furhat.say("Alright, so you want to book a ticket. $order.")
                 goto(ConfirmOrder)
             }
         }
@@ -152,6 +152,22 @@ val RequestDate : State = state(parent = OrderHandling) {
     onResponse<Date> {
         furhat.say("Okay, ${it.intent}")
         users.current.order.date = it.intent
+        goto(CheckOrder)
+    }
+}
+
+val RequestMealOption : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("What meal would you like to pre-order?")
+    }
+
+    onReentry {
+        furhat.ask("What meal would you like to pre-order?")
+    }
+
+    onResponse<MealOptions> {
+        furhat.say("Okay, ${it.intent}")
+        users.current.order.mealOption = it.intent
         goto(CheckOrder)
     }
 }
