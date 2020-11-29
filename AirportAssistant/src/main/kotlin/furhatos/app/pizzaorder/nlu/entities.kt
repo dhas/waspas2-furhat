@@ -23,7 +23,11 @@ class MealOptions : EnumEntity(speechRecPhrases = true) {
 
 }
 
-
+class Side : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("Window", "Middle", "Aisle")
+    }
+}
 
 class Place : EnumEntity() {
 
