@@ -17,6 +17,7 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     var topping : ListOfTopping? = null
     var deliverTo : Place? = null
     var travelTime : Time? = null
+    var baggage : Number? = null
 
     override fun getExamples(lang: Language): List<String> {
         return listOf(
@@ -38,6 +39,9 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     override fun toText(lang : Language) : String {
         if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
             var message = " You're flying [to $destination] on the [$date] at [$travelTime]."
+            if(this.baggage != null){
+                message = message + "You are checking in [$baggage] bags."
+            }
             if (this.mealOption != null){
                 message = message + "You have also pre-ordered a [$mealOption] meal."
             }else{

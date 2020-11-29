@@ -1,7 +1,9 @@
 package furhatos.app.pizzaorder.nlu
 
+import furhatos.nlu.ComplexEnumEntity
 import furhatos.nlu.EnumEntity
 import furhatos.nlu.ListEntity
+import furhatos.nlu.common.Number
 import furhatos.util.Language
 import kotlin.sequences.Sequence
 
@@ -19,6 +21,14 @@ class MealOptions : EnumEntity(speechRecPhrases = true) {
 
     override fun getEnum(lang: Language): List<String> {
         return listOf("Vegetarian", "Vegan", "Fish", "Chicken")
+    }
+
+}
+
+class BaggageOptions : EnumEntity(speechRecPhrases = true) {
+
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("Regular", "Large")
     }
 
 }

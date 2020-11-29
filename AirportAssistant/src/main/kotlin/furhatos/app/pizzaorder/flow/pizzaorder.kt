@@ -6,6 +6,7 @@ import furhatos.flow.kotlin.*
 import furhatos.nlu.common.*
 import furhatos.nlu.common.Number
 import furhatos.nlu.wikidata.City
+import furhatos.snippets.snippets
 import java.time.LocalTime
 
 /*
@@ -49,6 +50,7 @@ val CheckOrder = state {
             order.destination == null -> goto(RequestDestination)
             order.date == null -> goto(RequestDate)
             order.travelTime == null -> goto(RequestTime)
+            order.baggage == null -> goto(RequestBaggage)
             order.mealChosen == false -> goto(RequestMealOption)
 
             /*order.topping == null -> goto(RequestTopping)
@@ -259,6 +261,86 @@ val RequestTime : State = state(parent = OrderHandling) {
         users.current.order.travelTime = it.intent.time
         goto(CheckOrder)
     }
+}
+
+// Request baggage
+val RequestBaggage : State = state(parent = OrderHandling) {
+    onEntry {
+        random(
+                {
+                    furhat.ask("Do you want to check in any bags?")
+                    furhat.ask("Would you like to check in baggage?")
+                }
+        )
+    }
+
+    onReentry {
+        furhat.ask("Do you have any baggage to check in?")
+    }
+
+    onResponse<Yes> {
+        furhat.ask("how many bags do you want to check in? You may bring minimum 1 bag and maximum 3 bags.")
+    }
+
+
+    onResponse<No> {
+        furhat.say("You choose to not bring any bags.")
+        users.current.order.baggage = Number(0)
+        goto(CheckOrder)
+    }
+
+    // We assume that the volume of each bag is within the limit
+    onResponse<Number> {
+        var numBaggage = it.intent.value
+        var maxBags = 4
+        var minBags = 1
+        var maxWeight = 8.5
+        var minWeight = 1.5
+
+        if (numBaggage != null) {
+            if (numBaggage > maxBags || numBaggage < 0) {
+                snippets {
+                    furhat.say("Sorry, you can not bring $numBaggage bags. You are only allowed to bring minimum $minBags bag and maximum $maxBags bags.")
+
+                    //repeat(2) // this does not work for some reason
+                    // Starting over?
+                    reentry()
+                }
+            }
+            else {
+
+                furhat.say("Ok, you will check in $numBaggage bags.")
+                users.current.order.baggage = Number(numBaggage)
+                var extraPrice: Int = 0
+                for (i in minBags..numBaggage)
+                {
+                    val weight = minWeight + Math.random()*(maxWeight - minWeight)
+                    furhat.say("Bag number $i weights " + String.format("%.2f", weight) + " kg.")
+                    if (weight > 4)
+                    {
+                        // We assume that the user accepts the extra price
+                        furhat.say("This bag weights more than 4 kg. You will have to pay $10 extra for this bag.")
+                        extraPrice++
+                    }
+                }
+
+                val baggagePrice = 20*numBaggage + 10*extraPrice
+                furhat.say("The total cost for your baggage will be $baggagePrice.")
+                // How to check if the user is ok with this? If implemented we also need to add a variable to OrderPizzaIntent
+                //furhat.say("Is this ok?")
+                // if(notOK) {
+                //  reentry() // So that the user get the chance to go back and say "no" since the price is too high
+                //}
+
+
+            }
+        }
+        else{
+            propagate()
+        }
+        goto(CheckOrder)
+    }
+
 }
 
 // Confirming order
