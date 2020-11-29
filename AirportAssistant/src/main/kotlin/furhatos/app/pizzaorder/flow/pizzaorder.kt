@@ -309,7 +309,8 @@ val RequestBaggage : State = state(parent = OrderHandling) {
             }
             else {
 
-                furhat.say("Ok, you will check in $numBaggage bags.")
+                furhat.say("Ok, you choose to check in $numBaggage bags.")
+                furhat.say("I will weigh your bags now.")
                 users.current.order.baggage = Number(numBaggage)
                 var extraPrice: Int = 0
                 for (i in minBags..numBaggage)
