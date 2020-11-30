@@ -17,6 +17,7 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     var topping : ListOfTopping? = null
     var deliverTo : Place? = null
     var travelTime : Time? = null
+    var seatingSelection : Boolean? = null
     var seatSide : String? = null
     var seatNumber : Int? = null
 
@@ -42,12 +43,14 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     override fun toText(lang : Language) : String {
         if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
             var message = " You're flying [to $destination] on the [$date] at [$travelTime]."
-            if(this.seatSide != null)
-                message = message + "Your seat is [$seatNumber][$seatSide]"
+            if(this.seatingSelection == true)
+                message += "Your seat is [$seatNumber]-[$seatSide]"
+            else
+                message += "Your seat will be assigned randomly at check-in."
             if (this.mealOption != null){
-                message = message + "You have also pre-ordered a [$mealOption] meal."
+                message += "You have also pre-ordered a [$mealOption] meal."
             }else{
-                message = message + "You have not pre-ordered a meal."
+                message += "You have not pre-ordered a meal."
             }
             return generate(lang, message);
         }else{

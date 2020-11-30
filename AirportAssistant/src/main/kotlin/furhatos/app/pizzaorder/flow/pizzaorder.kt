@@ -51,8 +51,9 @@ val CheckOrder = state {
             order.travelTime == null -> goto(RequestTime)
 
             //Seat Selection Parts
-            order.seatSide == null -> goto(requestSeatSide)
-            order.seatNumber == null ->goto(requestSeatNum)
+            order.seatingSelection == null -> goto(requestsSeat)
+            (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
+            (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
             
             order.mealChosen == false -> goto(RequestMealOption)
 
@@ -161,9 +162,32 @@ val RequestDate : State = state(parent = OrderHandling) {
     }
 }
 
+val requestsSeat : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("Would you like to choose your seat now?")
+    }
+
+    onReentry {
+        furhat.say("Would you like to change your decision about seating?")
+    }
+
+    onResponse<Yes> {
+        furhat.say("Alright")
+        users.current.order.seatingSelection = true
+        goto(CheckOrder)
+    }
+    onResponse<No> {
+        furhat.say ("OK. You will be assigned seat randomly at the check in" )
+        users.current.order.seatingSelection = false
+        goto(CheckOrder)
+    }
+
+}
+
 val requestSeatSide : State = state(parent = OrderHandling) {
     onEntry {
-        furhat.ask("Which side would you like to sit? Window, aisle or middle?")
+
+        furhat.ask(" Which side would you like to sit? Window, aisle or middle?")
     }
 
     onReentry {
@@ -176,12 +200,11 @@ val requestSeatSide : State = state(parent = OrderHandling) {
 
     //Add random answer
     onResponse<TellSideIntent> {
-        if (it.intent.side!!.value == "Window")
-            users.current.order.seatSide = "A"
-        else if (it.intent.side!!.value == "Middle")
-            users.current.order.seatSide = "B"
-        else if (it.intent.side!!.value == "Aisle")
-            users.current.order.seatSide = "C"
+        when {
+            it.intent.side!!.value ==  "Window" -> users.current.order.seatSide = "A"
+            it.intent.side!!.value == "Middle" -> users.current.order.seatSide = "B"
+            it.intent.side!!.value == "Aisle" -> users.current.order.seatSide = "C"
+        }
 
         furhat.say("Okay, ${it.intent.side} also ${users.current.order.seatSide}")
         goto(CheckOrder)
