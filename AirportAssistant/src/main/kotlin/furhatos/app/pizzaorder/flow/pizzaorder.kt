@@ -51,6 +51,10 @@ val CheckOrder = state {
             order.date == null -> goto(RequestDate)
             order.travelTime == null -> goto(RequestTime)
             order.baggage == null -> goto(RequestBaggage)
+            //Seat Selection Parts
+            order.seatingSelection == null -> goto(requestsSeat)
+            (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
+            (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
             order.mealChosen == false -> goto(RequestMealOption)
 
             /*order.topping == null -> goto(RequestTopping)
@@ -155,6 +159,90 @@ val RequestDate : State = state(parent = OrderHandling) {
         furhat.say("Okay, ${it.intent}")
         users.current.order.date = it.intent
         goto(CheckOrder)
+    }
+}
+
+val requestsSeat : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("Would you like to choose your seat now?")
+    }
+
+    onReentry {
+        furhat.say("Would you like to change your decision about seating?")
+    }
+
+    onResponse<Yes> {
+        furhat.say("Alright")
+        users.current.order.seatingSelection = true
+        goto(CheckOrder)
+    }
+    onResponse<No> {
+        furhat.say ("OK. You will be assigned seat randomly at the check in" )
+        users.current.order.seatingSelection = false
+        goto(CheckOrder)
+    }
+
+}
+
+val requestSeatSide : State = state(parent = OrderHandling) {
+    onEntry {
+
+        furhat.ask(" Which side would you like to sit? Window, aisle or middle?")
+    }
+
+    onReentry {
+        furhat.ask("Which side do you want to sit?")
+    }
+
+    onResponse<RequestOptionsIntent> {
+        raise(it, RequestSideOptionsIntent())
+    }
+
+    //Add random answer
+    onResponse<TellSideIntent> {
+        when {
+            it.intent.side!!.value ==  "Window" -> users.current.order.seatSide = "A"
+            it.intent.side!!.value == "Middle" -> users.current.order.seatSide = "B"
+            it.intent.side!!.value == "Aisle" -> users.current.order.seatSide = "C"
+        }
+
+        furhat.say("Okay, ${it.intent.side} also ${users.current.order.seatSide}")
+        goto(CheckOrder)
+    }
+}
+
+val requestSeatNum : State = state(parent = OrderHandling)
+{
+    onEntry {
+        furhat.ask("Which Seat number would you like to sit? Select between 1 to 24")
+    }
+
+    onReentry {
+        furhat.ask("Please pick a seat between 1 and 24")
+    }
+
+    onResponse<RequestOptionsIntent> {
+        raise(it, RequestSeatNumberOptionsIntent())
+    }
+
+    //Add random answer
+
+    onResponse<Number> {
+        var num = it.intent.value
+        if (num != null) {
+            if(num in 1..24) {
+                var res = num.toString() + users.current.order.seatSide
+                furhat.say("Okay, you selected seat ${it.intent.value} .")
+                users.current.order.seatNumber = it.intent.value
+            }
+            else
+            {
+                furhat.say("That is an invalid selection")
+            }
+            goto(CheckOrder)
+
+        }
+
     }
 }
 
@@ -302,8 +390,8 @@ val RequestBaggage : State = state(parent = OrderHandling) {
                 snippets {
                     furhat.say("Sorry, you can not bring $numBaggage bags. You are only allowed to bring minimum $minBags bag and maximum $maxBags bags.")
 
-                    //repeat(2) // this does not work for some reason
-                    // Starting over?
+                    //repeat(2) // this does not work for some reason???
+                    // Starting over.
                     reentry()
                 }
             }

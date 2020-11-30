@@ -18,10 +18,14 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     var deliverTo : Place? = null
     var travelTime : Time? = null
     var baggage : Number? = null
+    var seatingSelection : Boolean? = null
+    var seatSide : String? = null
+    var seatNumber : Int? = null
 
     override fun getExamples(lang: Language): List<String> {
         return listOf(
-                "I would like to book a ticket"
+                "I would like to book a ticket",
+                "I would like to book"
                 /*"I would like a pizza to my office at 3 pm",
                 "I want a pizza",
                 "I want to order a pizza with bacon and ham",
@@ -40,12 +44,18 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
         if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
             var message = " You're flying [to $destination] on the [$date] at [$travelTime]."
             if(this.baggage != null){
-                message = message + "You are checking in [$baggage] bags."
+                message += "You have chose to check in [$baggage] bags."
+            }
+            if(this.seatingSelection == true){
+                message += "Your seat is [$seatNumber]-[$seatSide]"
+            }
+            else{
+                message += "Your seat will be assigned randomly at check-in."
             }
             if (this.mealOption != null){
-                message = message + "You have also pre-ordered a [$mealOption] meal."
+                message += "You have also pre-ordered a [$mealOption] meal."
             }else{
-                message = message + "You have not pre-ordered a meal."
+                message += "You have not pre-ordered a meal."
             }
             return generate(lang, message);
         }else{
@@ -75,6 +85,7 @@ class TellPlaceIntent : Intent() {
         return listOf("home", "to my home", "I want it delivered to my home", "send it to my home")
     }
 }
+
 
 class TellTimeIntent(var time : Time? = null) : Intent() {
 
@@ -146,3 +157,37 @@ class RequestOpeningHoursIntent : Intent() {
                 "when do you close")
     }
 }
+
+//Related to seating
+
+class TellSideIntent : Intent() {
+    var side : Side? = null
+
+    override fun getExamples(lang: Language): List<String> {
+        return listOf( "window", "on window side", "I want it on window side","middle", "on middle side", "I want it on middle side","aisle", "on aisle side", "I want it on aisle side")
+    }
+}
+
+
+class RequestSeatSideIntent : Intent()  {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("Window",
+                "Aisle",
+                "Middle")
+    }
+}
+
+class RequestSideOptionsIntent : Intent()  {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("where can I sit",
+                "What different seating options do you have?")
+    }
+}
+
+class RequestSeatNumberOptionsIntent : Intent()  {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("Where is available?",
+                "What seat numbers do you have available?")
+    }
+}
+
