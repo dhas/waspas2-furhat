@@ -42,20 +42,20 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
 
     override fun toText(lang : Language) : String {
         if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
-            var message = " You're flying [to $destination] on the [$date] at [$travelTime]."
+            var message = " You're flying [to $destination] on the [$date] at [$travelTime]. "
             if(this.baggage != null){
-                message += "You have chose to check in [$baggage] bags."
+                message += "You have chose to check in [$baggage] bags. "
             }
             if(this.seatingSelection == true){
-                message += "Your seat is [$seatNumber]-[$seatSide]"
+                message += "Your seat is [$seatNumber]-[$seatSide]. "
             }
             else{
-                message += "Your seat will be assigned randomly at check-in."
+                message += "Your seat will be assigned randomly at check-in. "
             }
             if (this.mealOption != null){
-                message += "You have also pre-ordered a [$mealOption] meal."
+                message += "You have also pre-ordered a [$mealOption] meal. "
             }else{
-                message += "You have not pre-ordered a meal."
+                message += "You have not pre-ordered a meal. "
             }
             return generate(lang, message);
         }else{
@@ -127,6 +127,8 @@ class RemoveToppingIntent : Intent() {
     }
 }
 
+
+
 class RequestOptionsIntent : Intent()  {
     override fun getExamples(lang: Language): List<String> {
         return listOf("what options are there",
@@ -188,6 +190,72 @@ class RequestSeatNumberOptionsIntent : Intent()  {
     override fun getExamples(lang: Language): List<String> {
         return listOf("Where is available?",
                 "What seat numbers do you have available?")
+    }
+}
+
+
+class ChangeSeatIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want to change my seat",
+                "Seat",
+                "Seating",
+                "Change the seat")
+    }
+}
+
+class ChangeDestinationIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want to change my destination",
+                "Destination",
+                "I want to change where I go",
+                "Change my flight destination")
+    }
+}
+
+
+class ChangeDateIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want change the date",
+                "Date",
+                "I want change the flight day",
+                "Change the flight day",
+                "Day",
+                "Change the Date")
+    }
+}
+
+class ChangeTimeIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want change the Time",
+                "Time",
+                "I want change flight hour",
+                "Change the flight hour",
+                "hour",
+                "Change the Time")
+    }
+}
+
+class ChangeBaggageIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want to change my baggage selection",
+                "Baggage",
+                "My baggage",
+                "Change the Baggage selection")
+    }
+}
+
+class ChangeMealIntent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I want to change my meal selection",
+                "meal",
+                "food",
+                "Change the meal selection")
     }
 }
 

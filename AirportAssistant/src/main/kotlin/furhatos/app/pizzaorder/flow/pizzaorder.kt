@@ -61,7 +61,7 @@ val CheckOrder = state {
             order.deliverTo == null -> goto(RequestDelivery)
             order.deliveryTime == null -> goto(RequestTime)*/
             else -> {
-                furhat.say("Alright, so you want to book a ticket. $order.")
+                furhat.say("$order.") // It is annoying to repeat if user changes
                 goto(ConfirmOrder)
             }
         }
@@ -164,7 +164,7 @@ val RequestDate : State = state(parent = OrderHandling) {
 
 val requestsSeat : State = state(parent = OrderHandling) {
     onEntry {
-        furhat.ask("Would you like to choose your seat now?")
+        furhat.ask("Would you like to choose your seat?")
     }
 
     onReentry {
@@ -177,7 +177,7 @@ val requestsSeat : State = state(parent = OrderHandling) {
         goto(CheckOrder)
     }
     onResponse<No> {
-        furhat.say ("OK. You will be assigned seat randomly at the check in" )
+        furhat.say ("OK. You will be assigned seat randomly at the gate" )
         users.current.order.seatingSelection = false
         goto(CheckOrder)
     }
@@ -187,7 +187,7 @@ val requestsSeat : State = state(parent = OrderHandling) {
 val requestSeatSide : State = state(parent = OrderHandling) {
     onEntry {
 
-        furhat.ask(" Which side would you like to sit? Window, aisle or middle?")
+        furhat.ask(" Which side would you like to sit? We have ${Side().optionsToText()}")
     }
 
     onReentry {
@@ -454,12 +454,53 @@ val ChangeOrder = state(parent = OrderHandling) {
     }
 
     onReentry {
-        furhat.ask("I currently have a pizza ${users.current.order}. Anything that you like to change?")
+        furhat.ask(" ${users.current.order}. Anything that you like to change?")
     }
 
     onResponse<Yes> {
         reentry()
     }
+
+    onResponse<ChangeSeatIntent> {
+        users.current.order.seatingSelection = null
+        users.current.order.seatSide = null
+        users.current.order.seatNumber = null
+        furhat.say("Alright. Directing you to seating selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeDestinationIntent> {
+        users.current.order.destination = null
+        furhat.say("Alright. Directing you to destination selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeDateIntent> {
+        users.current.order.date = null
+
+        furhat.say("Alright. Directing you to Date selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeTimeIntent> {
+        users.current.order.travelTime = null
+        furhat.say("Alright. Directing you to travel time selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeBaggageIntent> {
+        users.current.order.baggage = null
+        furhat.say("Alright. Directing you to baggage selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeMealIntent> {
+            users.current.order.mealChosen = false
+            users.current.order.mealOption = null
+
+            furhat.say("Alright. Directing you to meal selection.")
+            goto(CheckOrder)
+        }
 
     onResponse<No> {
         goto(EndOrder)
