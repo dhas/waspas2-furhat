@@ -6,10 +6,11 @@ import furhatos.nlu.*
 import furhatos.nlu.common.*
 import furhatos.nlu.common.Number
 import furhatos.nlu.wikidata.City
+import furhatos.nlu.wikidata.Country
 import furhatos.records.GenericRecord
 
 open class OrderPizzaIntent : Intent(), TextGenerator {
-    //var source : City? = null
+
     var destination : City? = null
     var date : Date? = null
     var mealChosen: Boolean? = false
@@ -25,7 +26,8 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     override fun getExamples(lang: Language): List<String> {
         return listOf(
                 "I would like to book a ticket",
-                "I would like to book"
+                "I would like to book",
+                "I would like to book a ticket to @destination"
                 /*"I would like a pizza to my office at 3 pm",
                 "I want a pizza",
                 "I want to order a pizza with bacon and ham",
@@ -77,6 +79,31 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
         }*/
     }
 }
+
+class  TellDestinationIntent : Intent() {
+    var destination : City? = null
+
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I would like to travel to @destination",
+                "@destination",
+                "I would like to book a ticket to @destination"
+        )
+    }
+}
+
+class IfCountry : Intent (){
+
+    var destination : Country? = null
+    override fun getExamples(lang: Language): List<String> {
+        return listOf(
+                "I would like to travel to @destination",
+                "@destination",
+                "I would like to book a ticket to @destination"
+        )
+    }
+}
+
 
 class TellPlaceIntent : Intent() {
     var deliverTo : Place? = null
