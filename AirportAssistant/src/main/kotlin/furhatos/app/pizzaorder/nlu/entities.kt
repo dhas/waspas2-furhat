@@ -42,11 +42,11 @@ class Side : EnumEntity() {
 class Place : EnumEntity() {
 
     override fun getEnum(lang: Language): List<String> {
-        return listOf("home", "office")
+        return listOf("Stockholm", "Gothenburg")
     }
 
-    // Method overridden to produce a spoken utterance of the place
+    /*// Method overridden to produce a spoken utterance of the place
     override fun toText(lang: Language): String {
         return generate(lang,"to your $value")
-    }
+    }*/
 }

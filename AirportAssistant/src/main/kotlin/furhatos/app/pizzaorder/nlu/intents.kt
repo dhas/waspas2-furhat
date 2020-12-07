@@ -10,13 +10,13 @@ import furhatos.nlu.wikidata.Country
 import furhatos.records.GenericRecord
 
 open class OrderPizzaIntent : Intent(), TextGenerator {
-    //var source : City? = null
     var destination : City? = null
+    var departure : Place? = null
     var date : Date? = null
     var mealChosen: Boolean? = null
     var mealOption: MealOptions? = null
     var topping : ListOfTopping? = null
-    var deliverTo : Place? = null
+    //var deliverTo : Place? = null
     var travelTime : Time? = null
     var baggage : Int? = null
     var seatingSelection : Boolean? = null
@@ -44,8 +44,8 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     }
 
     override fun toText(lang : Language) : String {
-        if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
-            var message = " You're flying [to $destination] on the [$date] at [$travelTime]. "
+        if((this.destination != null) and (this.departure != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
+            var message = " You're flying [from $departure] [to $destination] on the [$date] at [$travelTime]. "
             if(this.baggage != null && this.baggage == 0){
                 message += "You have chosen to not check in baggage. "
             }
@@ -110,11 +110,13 @@ class IfCountry : Intent (){
     }
 }
 
-class TellPlaceIntent : Intent() {
-    var deliverTo : Place? = null
+class TellDepartureIntent : Intent() {
+    var departure : Place? = null
 
     override fun getExamples(lang: Language): List<String> {
-        return listOf("home", "to my home", "I want it delivered to my home", "send it to my home")
+        return listOf("@departure",
+                    "From @departure",
+                    "I would like to travel from @departure")
     }
 }
 

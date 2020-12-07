@@ -79,6 +79,7 @@ val CheckOrder = state {
         val order = users.current.order
         when {
             order.destination == null -> goto(RequestDestination)
+            order.departure == null -> goto(RequestDeparture)
             order.date == null -> goto(RequestDate)
             order.travelTime == null -> goto(RequestTime)
             order.baggage == null -> goto(RequestBaggage)
@@ -115,19 +116,19 @@ val OrderHandling: State = state(parent = Questions) {
         if (it.intent.topping != null) message += ", adding ${it.intent.topping}"
 
         // Adding or changing delivery option and time
-        if (it.intent.deliverTo != null || it.intent.travelTime != null) {
+        if (it.intent.departure != null || it.intent.travelTime != null) {
 
             /* We are constructing a specific message depending on if we
             get a delivery place and/or time and if this slot already had a value
              */
             when {
-                it.intent.deliverTo != null && it.intent.travelTime != null -> { // We get both a delivery place and time
-                    message += ", delivering ${it.intent.deliverTo} ${it.intent.travelTime} "
-                    if (order.deliverTo != null || order.travelTime != null) message += "instead " // Add an "instead" if we are overwriting any of the slots
+                it.intent.departure != null && it.intent.travelTime != null -> { // We get both a delivery place and time
+                    message += ", delivering ${it.intent.departure} ${it.intent.travelTime} "
+                    if (order.departure != null || order.travelTime != null) message += "instead " // Add an "instead" if we are overwriting any of the slots
                 }
-                it.intent.deliverTo != null -> { // We get only a delivery place
-                    message += ", delivering ${it.intent.deliverTo} "
-                    if (order.deliverTo != null) message += "instead " // Add an "instead" if we are overwriting the slot
+                it.intent.departure != null -> { // We get only a delivery place
+                    message += ", delivering ${it.intent.departure} "
+                    if (order.departure != null) message += "instead " // Add an "instead" if we are overwriting the slot
                 }
                 it.intent.travelTime != null -> { // We get only a delivery time
                     message += ", delivering ${it.intent.travelTime} "
@@ -153,17 +154,6 @@ val OrderHandling: State = state(parent = Questions) {
     }
 }
 
-/*val RequestSource : State = state(parent = OrderHandling) {
-    onEntry {
-        furhat.ask("Where will you travel from?")
-    }
-
-    onResponse<City> {
-        furhat.say("Okay, ${it.intent}")
-        users.current.order.source = it.intent
-        goto(CheckOrder)
-    }
-}*/
 
 val RequestDestination : State = state(parent = OrderHandling) {
     onEntry {
@@ -171,22 +161,40 @@ val RequestDestination : State = state(parent = OrderHandling) {
     }
 
     onReentry {
-        furhat.ask("Please select a city.")
+        furhat.ask("Which city would you like to travel to ?")
     }
 
     onResponse<TellDestinationIntent> {
         furhat.say("Great, ${it.intent.destination}")
         users.current.order.destination = it.intent.destination
         goto(CheckOrder)
+
     }
 
+
     onResponse<IfCountry> {
-        furhat.say("Please select a city in ${it.intent.destination}")
+        furhat.say("You will be more specific by selecting a city in ${it.intent.destination}")
         reentry()
     }
 
     onNoResponse {
         furhat.ask("I did not understand, kindly could you please repeat?")
+    }
+}
+
+val RequestDeparture : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("Where will you travel from? Currently there are only two options. ${Place().optionsToText()} ")
+    }
+
+    onReentry {
+        furhat.ask("There are only, two avaliable options. ${Place().optionsToText()}")
+    }
+
+    onResponse<TellDepartureIntent> {
+        furhat.say("Okay, ${it.intent.departure}")
+        users.current.order.departure = it.intent.departure
+        goto(CheckOrder)
     }
 }
 
@@ -345,23 +353,6 @@ val RequestTopping : State = state(parent = OrderHandling) {
     onResponse<ToppingIntent> {
         furhat.say("Okay, ${it.intent.topping}")
         users.current.order.topping = it.intent.topping
-        goto(CheckOrder)
-    }
-}
-
-// Request delivery point
-val RequestDelivery : State = state(parent = OrderHandling) {
-    onEntry {
-        furhat.ask("Where do you want it delivered?")
-    }
-
-    onResponse<RequestOptionsIntent> {
-        raise(it, RequestDeliveryOptionsIntent())
-    }
-
-    onResponse<TellPlaceIntent> {
-        furhat.say("Okay, ${it.intent.deliverTo}")
-        users.current.order.deliverTo = it.intent.deliverTo
         goto(CheckOrder)
     }
 }
