@@ -36,6 +36,10 @@ val Start = state(parent = Questions) {
         furhat.ask("Welcome to Air One. How may I help you?")
     }
 
+    onReentry {
+        furhat.ask("Hello again. Do you want to change your ticket?")
+    }
+
     onResponse<TellDestinationIntent> {
         furhat.say("Great, you would like to book a ticket to ${it.intent.destination}")
         users.current.order.destination = it.intent.destination
@@ -52,6 +56,10 @@ val Start = state(parent = Questions) {
         furhat.say("Ok, you want to book a ticket ${it.intent}")
         goto(CheckOrder)
     }
+
+    onResponse<Yes> {
+        goto(ChangeOrder)
+    }
 }
 
 // Form-filling state that checks any missing slots and if so, goes to specific slot-filling states.
@@ -67,7 +75,7 @@ val CheckOrder = state {
             order.seatingSelection == null -> goto(requestsSeat)
             (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
             (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
-            order.mealChosen == false -> goto(RequestMealOption)
+            order.mealChosen == null -> goto(RequestMealOption)
 
             /*order.topping == null -> goto(RequestTopping)
             order.deliverTo == null -> goto(RequestDelivery)
@@ -475,7 +483,7 @@ val ConfirmOrder : State = state(parent = OrderHandling) {
 // Changing order
 val ChangeOrder = state(parent = OrderHandling) {
     onEntry {
-        furhat.ask("Anything that you like to change?")
+        furhat.ask("What do you want to change?")
     }
 
     onReentry {
@@ -520,7 +528,7 @@ val ChangeOrder = state(parent = OrderHandling) {
     }
 
     onResponse<ChangeMealIntent> {
-            users.current.order.mealChosen = false
+            users.current.order.mealChosen = null
             users.current.order.mealOption = null
 
             furhat.say("Alright. Directing you to meal selection.")
