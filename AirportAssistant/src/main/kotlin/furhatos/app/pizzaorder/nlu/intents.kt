@@ -10,7 +10,7 @@ import furhatos.nlu.wikidata.Country
 import furhatos.records.GenericRecord
 
 open class OrderPizzaIntent : Intent(), TextGenerator {
-
+    //var source : City? = null
     var destination : City? = null
     var date : Date? = null
     var mealChosen: Boolean? = false
@@ -103,7 +103,6 @@ class IfCountry : Intent (){
         )
     }
 }
-
 
 class TellPlaceIntent : Intent() {
     var deliverTo : Place? = null

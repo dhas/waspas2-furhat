@@ -5,8 +5,9 @@ import furhatos.app.pizzaorder.nlu.*
 import furhatos.flow.kotlin.*
 import furhatos.nlu.common.*
 import furhatos.nlu.common.Number
-import furhatos.nlu.wikidata.City
 import furhatos.nlu.wikidata.Country
+import furhatos.nlu.wikidata.City
+import furhatos.snippets.snippets
 import java.time.LocalTime
 
 /*
@@ -61,18 +62,18 @@ val CheckOrder = state {
             order.destination == null -> goto(RequestDestination)
             order.date == null -> goto(RequestDate)
             order.travelTime == null -> goto(RequestTime)
-
+            order.baggage == null -> goto(RequestBaggage)
             //Seat Selection Parts
-            order.seatSide == null -> goto(requestSeatSide)
-            order.seatNumber == null ->goto(requestSeatNum)
-            
+            order.seatingSelection == null -> goto(requestsSeat)
+            (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
+            (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
             order.mealChosen == false -> goto(RequestMealOption)
 
             /*order.topping == null -> goto(RequestTopping)
             order.deliverTo == null -> goto(RequestDelivery)
             order.deliveryTime == null -> goto(RequestTime)*/
             else -> {
-                furhat.say("Alright, so you want to book a ticket. $order.")
+                furhat.say("$order.") // It is annoying to repeat if user changes
                 goto(ConfirmOrder)
             }
         }
@@ -149,16 +150,17 @@ val RequestDestination : State = state(parent = OrderHandling) {
     onEntry {
         furhat.ask("Where would you like to go?")
     }
+
     onReentry {
         furhat.ask("Please select a city.")
     }
-
 
     onResponse<TellDestinationIntent> {
         furhat.say("Great, ${it.intent.destination}")
         users.current.order.destination = it.intent.destination
         goto(CheckOrder)
     }
+
     onResponse<IfCountry> {
         furhat.say("Please select a city in ${it.intent.destination}")
         reentry()
@@ -185,9 +187,32 @@ val RequestDate : State = state(parent = OrderHandling) {
     }
 }
 
+val requestsSeat : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("Would you like to choose your seat?")
+    }
+
+    onReentry {
+        furhat.say("Would you like to change your decision about seating?")
+    }
+
+    onResponse<Yes> {
+        furhat.say("Alright")
+        users.current.order.seatingSelection = true
+        goto(CheckOrder)
+    }
+    onResponse<No> {
+        furhat.say ("OK. You will be assigned seat randomly at the gate" )
+        users.current.order.seatingSelection = false
+        goto(CheckOrder)
+    }
+
+}
+
 val requestSeatSide : State = state(parent = OrderHandling) {
     onEntry {
-        furhat.ask("Which side would you like to sit? Window, aisle or middle?")
+
+        furhat.ask(" Which side would you like to sit? We have ${Side().optionsToText()}")
     }
 
     onReentry {
@@ -200,12 +225,11 @@ val requestSeatSide : State = state(parent = OrderHandling) {
 
     //Add random answer
     onResponse<TellSideIntent> {
-        if (it.intent.side!!.value == "Window")
-            users.current.order.seatSide = "A"
-        else if (it.intent.side!!.value == "Middle")
-            users.current.order.seatSide = "B"
-        else if (it.intent.side!!.value == "Aisle")
-            users.current.order.seatSide = "C"
+        when {
+            it.intent.side!!.value ==  "Window" -> users.current.order.seatSide = "A"
+            it.intent.side!!.value == "Middle" -> users.current.order.seatSide = "B"
+            it.intent.side!!.value == "Aisle" -> users.current.order.seatSide = "C"
+        }
 
         furhat.say("Okay, ${it.intent.side} also ${users.current.order.seatSide}")
         goto(CheckOrder)
@@ -352,6 +376,87 @@ val RequestTime : State = state(parent = OrderHandling) {
     }
 }
 
+// Request baggage
+val RequestBaggage : State = state(parent = OrderHandling) {
+    onEntry {
+        random(
+                {
+                    furhat.ask("Do you want to check in any bags?")
+                    furhat.ask("Would you like to check in baggage?")
+                }
+        )
+    }
+
+    onReentry {
+        furhat.ask("Do you have any baggage to check in?")
+    }
+
+    onResponse<Yes> {
+        furhat.ask("how many bags do you want to check in? You may bring minimum 1 bag and maximum 3 bags.")
+    }
+
+
+    onResponse<No> {
+        furhat.say("You choose to not bring any bags.")
+        users.current.order.baggage = Number(0)
+        goto(CheckOrder)
+    }
+
+    // We assume that the volume of each bag is within the limit
+    onResponse<Number> {
+        var numBaggage = it.intent.value
+        var maxBags = 4
+        var minBags = 1
+        var maxWeight = 8.5
+        var minWeight = 1.5
+
+        if (numBaggage != null) {
+            if (numBaggage > maxBags || numBaggage < 0) {
+                snippets {
+                    furhat.say("Sorry, you can not bring $numBaggage bags. You are only allowed to bring minimum $minBags bag and maximum $maxBags bags.")
+
+                    //repeat(2) // this does not work for some reason???
+                    // Starting over.
+                    reentry()
+                }
+            }
+            else {
+
+                furhat.say("Ok, you choose to check in $numBaggage bags.")
+                furhat.say("I will weigh your bags now.")
+                users.current.order.baggage = Number(numBaggage)
+                var extraPrice: Int = 0
+                for (i in minBags..numBaggage)
+                {
+                    val weight = minWeight + Math.random()*(maxWeight - minWeight)
+                    furhat.say("Bag number $i weights " + String.format("%.2f", weight) + " kg.")
+                    if (weight > 4)
+                    {
+                        // We assume that the user accepts the extra price
+                        furhat.say("This bag weights more than 4 kg. You will have to pay $10 extra for this bag.")
+                        extraPrice++
+                    }
+                }
+
+                val baggagePrice = 20*numBaggage + 10*extraPrice
+                furhat.say("The total cost for your baggage will be $baggagePrice.")
+                // How to check if the user is ok with this? If implemented we also need to add a variable to OrderPizzaIntent
+                //furhat.say("Is this ok?")
+                // if(notOK) {
+                //  reentry() // So that the user get the chance to go back and say "no" since the price is too high
+                //}
+
+
+            }
+        }
+        else{
+            propagate()
+        }
+        goto(CheckOrder)
+    }
+
+}
+
 // Confirming order
 val ConfirmOrder : State = state(parent = OrderHandling) {
     onEntry {
@@ -374,12 +479,53 @@ val ChangeOrder = state(parent = OrderHandling) {
     }
 
     onReentry {
-        furhat.ask("I currently have a pizza ${users.current.order}. Anything that you like to change?")
+        furhat.ask(" ${users.current.order}. Anything that you like to change?")
     }
 
     onResponse<Yes> {
         reentry()
     }
+
+    onResponse<ChangeSeatIntent> {
+        users.current.order.seatingSelection = null
+        users.current.order.seatSide = null
+        users.current.order.seatNumber = null
+        furhat.say("Alright. Directing you to seating selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeDestinationIntent> {
+        users.current.order.destination = null
+        furhat.say("Alright. Directing you to destination selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeDateIntent> {
+        users.current.order.date = null
+
+        furhat.say("Alright. Directing you to Date selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeTimeIntent> {
+        users.current.order.travelTime = null
+        furhat.say("Alright. Directing you to travel time selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeBaggageIntent> {
+        users.current.order.baggage = null
+        furhat.say("Alright. Directing you to baggage selection.")
+        goto(CheckOrder)
+    }
+
+    onResponse<ChangeMealIntent> {
+            users.current.order.mealChosen = false
+            users.current.order.mealOption = null
+
+            furhat.say("Alright. Directing you to meal selection.")
+            goto(CheckOrder)
+        }
 
     onResponse<No> {
         goto(EndOrder)
