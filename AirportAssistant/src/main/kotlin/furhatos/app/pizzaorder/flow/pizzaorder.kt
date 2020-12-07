@@ -33,7 +33,13 @@ val Questions: State = state(Interaction) {
 // Start of interaction
 val Start = state(parent = Questions) {
     onEntry {
-        furhat.ask("Welcome to Air One. How may I help you?")
+        val order = users.current.order
+        if(order.destination != null && order.date != null && order.travelTime != null && order.baggage != null &&
+                    order.seatingSelection != null && order.mealChosen != null)
+            reentry()
+        else
+            furhat.ask("Welcome to Air One. How may I help you?")
+
     }
 
     onReentry {
@@ -59,6 +65,10 @@ val Start = state(parent = Questions) {
 
     onResponse<Yes> {
         goto(ChangeOrder)
+    }
+    onResponse<No> {
+//        furhat.say("Ok. Feel free to come whenever you want to change your booking. Have a nice flight!")
+        goto(EndOrder)
     }
 }
 
@@ -543,7 +553,7 @@ val ChangeOrder = state(parent = OrderHandling) {
 // Order completed
 val EndOrder = state {
     onEntry {
-        furhat.say("Great! Thanks for your order. Goodbye")
+        furhat.say("Great! Thanks for your booking. Feel free to come whenever you want to change your booking. Have a nice flight!")
         goto(Idle)
     }
 }

@@ -27,6 +27,7 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
         return listOf(
                 "I would like to book a ticket",
                 "I would like to book",
+                "I want to book a ticket",
                 "I would like to book a ticket to @destination"
                 /*"I would like a pizza to my office at 3 pm",
                 "I want a pizza",
