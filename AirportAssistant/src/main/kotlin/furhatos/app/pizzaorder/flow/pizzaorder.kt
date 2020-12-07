@@ -1,5 +1,6 @@
 package furhatos.app.pizzaorder.flow
 
+import cc.mallet.util.CommandOption
 import furhatos.app.pizzaorder.*
 import furhatos.app.pizzaorder.nlu.*
 import furhatos.flow.kotlin.*
@@ -410,19 +411,19 @@ val RequestBaggage : State = state(parent = OrderHandling) {
     }
 
     onResponse<Yes> {
-        furhat.ask("how many bags do you want to check in? You may bring minimum 1 bag and maximum 3 bags.")
+        furhat.ask("How many bags do you want to check in? You may bring minimum 1 bag and maximum 3 bags.")
     }
 
 
     onResponse<No> {
         furhat.say("You choose to not bring any bags.")
-        users.current.order.baggage = Number(0)
+        users.current.order.baggage = 0
         goto(CheckOrder)
     }
 
     // We assume that the volume of each bag is within the limit
     onResponse<Number> {
-        var numBaggage = it.intent.value
+        var numBaggage: Int? = it.intent.value
         var maxBags = 4
         var minBags = 1
         var maxWeight = 8.5
@@ -442,7 +443,7 @@ val RequestBaggage : State = state(parent = OrderHandling) {
 
                 furhat.say("Ok, you choose to check in $numBaggage bags.")
                 furhat.say("I will weigh your bags now.")
-                users.current.order.baggage = Number(numBaggage)
+                users.current.order.baggage = numBaggage
                 var extraPrice: Int = 0
                 for (i in minBags..numBaggage)
                 {
