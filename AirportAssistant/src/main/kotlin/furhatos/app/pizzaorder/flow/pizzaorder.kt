@@ -482,6 +482,7 @@ val ConfirmOrder : State = state(parent = OrderHandling) {
     }
 
     onResponse<Yes> {
+        furhat.say("Great! Thanks for your booking.")
         goto(EndOrder)
     }
 
@@ -553,7 +554,7 @@ val ChangeOrder = state(parent = OrderHandling) {
 // Order completed
 val EndOrder = state {
     onEntry {
-        furhat.say("Great! Thanks for your booking. Feel free to come whenever you want to change your booking. Have a nice flight!")
+        furhat.say("Alright. Feel free to come whenever you want to change your booking. Have a nice flight!")
         goto(Idle)
     }
 }

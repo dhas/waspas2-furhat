@@ -46,9 +46,10 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     override fun toText(lang : Language) : String {
         if((this.destination != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
             var message = " You're flying [to $destination] on the [$date] at [$travelTime]. "
-            if(this.baggage != null){
+            if(this.baggage != null && this.baggage.compareTo( Number(0))){
                 message += "You have chose to check in [$baggage] bags. "
             }
+
             if(this.seatingSelection == true){
                 message += "Your seat is [$seatNumber]-[$seatSide]. "
             }
