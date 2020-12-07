@@ -416,7 +416,7 @@ val RequestBaggage : State = state(parent = OrderHandling) {
 
 
     onResponse<No> {
-        furhat.say("You choose to not bring any bags.")
+        furhat.say("Ok, so you choose to not bring any bags.")
         users.current.order.baggage = 0
         goto(CheckOrder)
     }
@@ -433,9 +433,6 @@ val RequestBaggage : State = state(parent = OrderHandling) {
             if (numBaggage > maxBags || numBaggage < 0) {
                 snippets {
                     furhat.say("Sorry, you can not bring $numBaggage bags. You are only allowed to bring minimum $minBags bag and maximum $maxBags bags.")
-
-                    //repeat(2) // this does not work for some reason???
-                    // Starting over.
                     reentry()
                 }
             }
@@ -459,13 +456,6 @@ val RequestBaggage : State = state(parent = OrderHandling) {
 
                 val baggagePrice = 20*numBaggage + 10*extraPrice
                 furhat.say("The total cost for your baggage will be $baggagePrice.")
-                // How to check if the user is ok with this? If implemented we also need to add a variable to OrderPizzaIntent
-                //furhat.say("Is this ok?")
-                // if(notOK) {
-                //  reentry() // So that the user get the chance to go back and say "no" since the price is too high
-                //}
-
-
             }
         }
         else{
