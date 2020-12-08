@@ -12,6 +12,10 @@ import furhatos.records.GenericRecord
 open class OrderPizzaIntent : Intent(), TextGenerator {
     var destination : City? = null
     var departure : Place? = null
+    var day : Ordinal? = null
+    var month : Month? = null
+    var hour : Int? = null
+    var min : Int? = null
     var date : Date? = null
     var mealChosen: Boolean? = null
     var mealOption: MealOptions? = null
@@ -120,6 +124,21 @@ class TellDepartureIntent : Intent() {
     }
 }
 
+class TellMonthIntent : Intent() {
+    var month : Month? = null
+
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("@month", "I would like to travel in @month", "In @month")
+    }
+}
+
+class TellDayIntent : Intent() {
+    var day : Ordinal? = null
+
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("The @day", "I would like to travel on the @day")
+    }
+}
 
 class TellTimeIntent(var time : Time? = null) : Intent() {
 

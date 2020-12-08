@@ -80,8 +80,8 @@ val CheckOrder = state {
         when {
             order.destination == null -> goto(RequestDestination)
             order.departure == null -> goto(RequestDeparture)
-            order.date == null -> goto(RequestDate)
-            order.travelTime == null -> goto(RequestTime)
+            order.month == null -> goto(RequestMonth)
+            order.day == null -> goto(RequestDay)
             order.baggage == null -> goto(RequestBaggage)
             //Seat Selection Parts
             order.seatingSelection == null -> goto(requestsSeat)
@@ -195,6 +195,81 @@ val RequestDeparture : State = state(parent = OrderHandling) {
         furhat.say("Okay, ${it.intent.departure}")
         users.current.order.departure = it.intent.departure
         goto(CheckOrder)
+    }
+}
+
+val RequestMonth : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("What month would you like to travel?")
+    }
+
+    onReentry {
+        furhat.ask("Please specify a month.")
+    }
+
+    onResponse<TellMonthIntent> {
+        furhat.say("${it.intent.month} it is.")
+        users.current.order.month = it.intent.month
+        goto(CheckOrder)
+
+    }
+
+    onNoResponse {
+        furhat.ask("I am sorry, I must have missed what you said. Would you be so kind as to repeat?")
+    }
+}
+
+val RequestDay : State = state(parent = OrderHandling) {
+    onEntry {
+        furhat.ask("What day would you like to travel?")
+    }
+
+    onReentry {
+        furhat.ask("Please specify a day.")
+    }
+
+    onResponse<TellDayIntent> {
+
+        val day_int = it.intent.day.toString().dropLast(2).toInt() // Convert ordinal to integer except 1st/2nd/3rd
+        val available = arrayOf<Int>(4, 6, 9, 12, 14, 17, 20, 22, 24, 27, 29, 31)
+        val rndhour = (11..23).random()
+        val rndmin = (10..58).random()
+        users.current.order.hour = rndhour // Set here already since they will be sent back to RequestDay if they disagree
+        users.current.order.min = rndmin
+        if (day_int in available) {
+            furhat.say("On that day there is a flight at ${rndhour} ${rndmin}.")
+            users.current.order.day = it.intent.day
+            goto(DayAccept)
+        } else if (day_int + 1 in available) {
+            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int + 1}th at ${rndhour} ${rndmin}.")
+            users.current.order.day = it.intent.day
+            goto(DayAccept)
+        } else {
+            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int - 1}th at ${rndhour} ${rndmin}.")
+            users.current.order.day = it.intent.day
+            goto(DayAccept)
+        }
+
+    }
+
+    onNoResponse {
+        furhat.ask("My sincerest apologies, I must have missed what you said. Would you be so kind as to reiterate?")
+    }
+}
+
+val DayAccept : State = state(parent = OrderHandling) {
+
+    onEntry {
+        furhat.ask("Would this be acceptable?")
+    }
+
+    onResponse<Yes> {
+        furhat.say("Excellent.")
+        goto(CheckOrder)
+    }
+    onResponse<No> {
+        furhat.say ("Ok. Please consider another day on which to travel.")
+        goto(RequestDay)
     }
 }
 
