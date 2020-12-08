@@ -173,7 +173,7 @@ val RequestDestination : State = state(parent = OrderHandling) {
 
 
     onResponse<IfCountry> {
-        furhat.say("You will be more specific by selecting a city in ${it.intent.destination}")
+        furhat.say("You will have to be more specific by selecting a city in ${it.intent.destination}")
         reentry()
     }
 
