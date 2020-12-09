@@ -21,14 +21,16 @@ val Start = state(parent = Questions) {
         val order = users.current.order
         if(order.destination != null && order.day != null && order.month != null && order.baggage != null &&
                     order.seatingSelection != null && order.mealChosen != null)
-            reentry()
+            furhat.ask("Hello again. Do you want to change your ticket?")
+
         else
             furhat.ask("Welcome to WASP Airlines. How may I help you?")
 
     }
 
     onReentry {
-        furhat.ask("Hello again. Do you want to change your ticket?")
+        furhat.ask("Welcome to WASP Airlines. At your service?")
+
     }
 
     onResponse<TellDestinationIntent> {
@@ -217,11 +219,11 @@ val RequestDay : State = state(parent = BookHandling) {
             goto(DayAccept)
         } else if (day_int + 1 in available) {
             furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int + 1}th at ${rndhour} ${rndmin} o'clock.")
-            users.current.order.day = it.intent.day
+            users.current.order.day = Ordinal(day_int+1)
             goto(DayAccept)
         } else {
             furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int - 1}th at ${rndhour} ${rndmin} o'clock.")
-            users.current.order.day = it.intent.day
+            users.current.order.day = Ordinal(day_int-1)
             goto(DayAccept)
         }
 
