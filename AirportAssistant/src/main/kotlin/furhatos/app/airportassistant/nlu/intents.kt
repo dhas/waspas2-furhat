@@ -52,9 +52,9 @@ open class BookTicketIntent : Intent(), TextGenerator {
                 message += "Your seat will be assigned randomly at check-in. "
             }
             if (this.mealOption != null){
-                message += "You have also pre-ordered a [$mealOption] meal. "
+                message += "You have also pre-ordered a [$mealOption] meal "
             }else{
-                message += "You have not pre-ordered a meal. "
+                message += "You have not pre-ordered a meal "
             }
             return generate(lang, message);
         }else{
