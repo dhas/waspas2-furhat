@@ -1,15 +1,14 @@
-package furhatos.app.pizzaorder.nlu
+package furhatos.app.airportassistant.nlu
 
 import furhatos.nlu.TextGenerator
 import furhatos.util.Language
 import furhatos.nlu.*
 import furhatos.nlu.common.*
-import furhatos.nlu.common.Number
 import furhatos.nlu.wikidata.City
 import furhatos.nlu.wikidata.Country
 import furhatos.records.GenericRecord
 
-open class OrderPizzaIntent : Intent(), TextGenerator {
+open class BookTicketIntent : Intent(), TextGenerator {
     var destination : City? = null
     var departure : Place? = null
     var day : Ordinal? = null
@@ -19,7 +18,6 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
     var date : Date? = null
     var mealChosen: Boolean? = null
     var mealOption: MealOptions? = null
-    var topping : ListOfTopping? = null
     //var deliverTo : Place? = null
     var travelTime : Time? = null
     var baggage : Int? = null
@@ -33,23 +31,12 @@ open class OrderPizzaIntent : Intent(), TextGenerator {
                 "I would like to book",
                 "I want to book a ticket",
                 "I would like to book a ticket to @destination"
-                /*"I would like a pizza to my office at 3 pm",
-                "I want a pizza",
-                "I want to order a pizza with bacon and ham",
-                "Deliver to my @deliverTo instead",
-                "I want it to @deliverTo",
-                "Deliver it at @deliveryTime",
-                "I want it at @deliveryTime",
-                "I want to add @topping",
-                "I also want @topping",
-                "I want @topping",
-                "I want it @deliveryTime @deliverTo"*/
         )
     }
 
     override fun toText(lang : Language) : String {
-        if((this.destination != null) and (this.departure != null) and (this.date != null) and (this.travelTime != null) and (this.mealChosen == true)){
-            var message = " You're flying [from $departure] [to $destination] on the [$date] at [$travelTime]. "
+        if((this.destination != null) and (this.departure != null) and (this.day != null) and (this.month != null) and (this.mealChosen == true)){
+            var message = " You're flying [from $departure] [to $destination] on the [$month] [$day]. "
             if(this.baggage != null && this.baggage == 0){
                 message += "You have chosen to not check in baggage. "
             }
@@ -136,7 +123,7 @@ class TellDayIntent : Intent() {
     var day : Ordinal? = null
 
     override fun getExamples(lang: Language): List<String> {
-        return listOf("The @day", "I would like to travel on the @day")
+        return listOf("The @day", "I would like to travel on the @day", "@day")
     }
 }
 
@@ -147,41 +134,6 @@ class TellTimeIntent(var time : Time? = null) : Intent() {
     }
 }
 
-class ToppingIntent : AddToppingIntent() {
-    override fun getExamples(lang: Language): List<String> {
-        return listOf(
-                "@topping",
-                "yes @topping")
-    }
-}
-
-open class AddToppingIntent : Intent() {
-    var topping : ListOfTopping? = null
-
-    override fun getExamples(lang: Language): List<String> {
-        return listOf(
-                "I want @topping",
-                "I also want @topping",
-                "I want to add @topping"
-        )
-    }
-}
-
-class RemoveToppingIntent : Intent() {
-    var topping : ListOfTopping? = null
-
-    override fun getExamples(lang: Language): List<String> {
-        return listOf(
-            "I want to remove bacon",
-            "no bacon",
-            "I do not want bacon",
-            "I don't want bacon",
-            "remove bacon from my pizza")
-    }
-}
-
-
-
 class RequestOptionsIntent : Intent()  {
     override fun getExamples(lang: Language): List<String> {
         return listOf("what options are there",
@@ -191,27 +143,6 @@ class RequestOptionsIntent : Intent()  {
     }
 }
 
-class RequestDeliveryOptionsIntent : Intent()  {
-    override fun getExamples(lang: Language): List<String> {
-        return listOf("where can you deliver",
-                "where can I get it")
-    }
-}
-
-class RequestToppingOptionsIntent : Intent()  {
-    override fun getExamples(lang: Language): List<String> {
-        return listOf("what topping do you have",
-                "what different toppings do you have?")
-    }
-}
-
-class RequestOpeningHoursIntent : Intent() {
-    override fun getExamples(lang: Language): List<String> {
-        return listOf("what are your opening hours",
-                "when do you open",
-                "when do you close")
-    }
-}
 
 //Related to seating
 
@@ -276,7 +207,16 @@ class ChangeDateIntent : Intent() {
                 "I want change the flight day",
                 "Change the flight day",
                 "Day",
-                "Change the Date")
+                "I want change the flight month",
+                "Change the flight month",
+                "Month",
+                "Change the Date",
+                "I want change the Time",
+                "Time",
+                "I want change flight hour",
+                "Change the flight hour",
+                "hour",
+                "Change the Time")
     }
 }
 

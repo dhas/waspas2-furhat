@@ -1,10 +1,10 @@
-package furhatos.app.pizzaorder
+package furhatos.app.airportassistant
 
-import furhatos.app.pizzaorder.flow.Idle
+import furhatos.app.airportassistant.flow.Idle
 import furhatos.skills.Skill
 import furhatos.flow.kotlin.*
 
-class PizzaOrderSkill : Skill() {
+class AirportAssistantSkill : Skill() {
     override fun start() {
         Flow().run(Idle)
     }

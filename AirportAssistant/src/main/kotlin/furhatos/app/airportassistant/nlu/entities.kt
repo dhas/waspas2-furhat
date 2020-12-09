@@ -1,26 +1,13 @@
-package furhatos.app.pizzaorder.nlu
+package furhatos.app.airportassistant.nlu
 
-import furhatos.nlu.ComplexEnumEntity
 import furhatos.nlu.EnumEntity
-import furhatos.nlu.ListEntity
-import furhatos.nlu.common.Number
 import furhatos.util.Language
-import kotlin.sequences.Sequence
 
-class ListOfTopping : ListEntity<Topping>()
 
 class Month : EnumEntity(speechRecPhrases = true) {
 
     override fun getEnum(lang: Language): List<String> {
         return listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
-    }
-
-}
-
-class Topping : EnumEntity(speechRecPhrases = true) {
-
-    override fun getEnum(lang: Language): List<String> {
-        return listOf("onion", "ham", "mozzarella", "bacon", "rocket salad:rocket salad,rocket sallad", "pepper")
     }
 
 }

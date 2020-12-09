@@ -1,32 +1,16 @@
-package furhatos.app.pizzaorder.flow
+package furhatos.app.airportassistant.flow
 
-import cc.mallet.util.CommandOption
-import furhatos.app.pizzaorder.*
-import furhatos.app.pizzaorder.nlu.*
+import furhatos.app.airportassistant.*
+import furhatos.app.airportassistant.nlu.*
 import furhatos.flow.kotlin.*
 import furhatos.nlu.common.*
 import furhatos.nlu.common.Number
-import furhatos.nlu.wikidata.Country
-import furhatos.nlu.wikidata.City
 import furhatos.snippets.snippets
 import java.time.LocalTime
 
-/*
-    General enquiries that we want to be able to handle, as well as an OrderPizzaIntent that is used for initial orders.
- */
 val Questions: State = state(Interaction) {
-    onResponse<RequestDeliveryOptionsIntent> {
-        furhat.say("We can deliver to your home and to your office")
-        reentry()
-    }
-
-    onResponse<RequestOpeningHoursIntent> {
-        furhat.say("We are open between 7 am and 8 pm")
-        reentry()
-    }
-
-    onResponse<RequestToppingOptionsIntent> {
-        furhat.say("We have " + Topping().optionsToText())
+    onResponse<RequestSeatNumberOptionsIntent> {
+        furhat.say("You can pick between 1 to 24")
         reentry()
     }
 }
@@ -58,7 +42,7 @@ val Start = state(parent = Questions) {
         goto(CheckOrder)
     }
 
-    onResponse<OrderPizzaIntent> {
+    onResponse<BookTicketIntent> {
         users.current.order.adjoin(it.intent)
         furhat.say("Ok, you want to book a ticket ${it.intent}")
         goto(CheckOrder)
@@ -80,18 +64,19 @@ val CheckOrder = state {
         when {
             order.destination == null -> goto(RequestDestination)
             order.departure == null -> goto(RequestDeparture)
+
             order.month == null -> goto(RequestMonth)
             order.day == null -> goto(RequestDay)
+
             order.baggage == null -> goto(RequestBaggage)
+
             //Seat Selection Parts
             order.seatingSelection == null -> goto(requestsSeat)
             (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
             (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
+
             order.mealChosen == null -> goto(RequestMealOption)
 
-            /*order.topping == null -> goto(RequestTopping)
-            order.deliverTo == null -> goto(RequestDelivery)
-            order.deliveryTime == null -> goto(RequestTime)*/
             else -> {
                 furhat.say("$order.") // It is annoying to repeat if user changes
                 goto(ConfirmOrder)
@@ -103,17 +88,14 @@ val CheckOrder = state {
 /*
     State for handling changes to an existing order
  */
-val OrderHandling: State = state(parent = Questions) {
+val BookHandling: State = state(parent = Questions) {
 
     // Handler that re-uses our pizza intent but has a more intelligent response handling depending on what new information we get
-    onResponse<OrderPizzaIntent> {
+    onResponse<BookTicketIntent> {
         val order = users.current.order
 
         // Message to be constructed based on what data points we get from the user
         var message = "Okay"
-
-        // Adding topping(s) if we get any new
-        if (it.intent.topping != null) message += ", adding ${it.intent.topping}"
 
         // Adding or changing delivery option and time
         if (it.intent.departure != null || it.intent.travelTime != null) {
@@ -145,17 +127,10 @@ val OrderHandling: State = state(parent = Questions) {
 
         reentry()
     }
-
-    // Specific handler for removing toppings since this is to complex to include in our OrderPizzaIntent (due to the ambiguity of adding vs removing toppings)
-    onResponse<RemoveToppingIntent> {
-        users.current.order.topping?.removeFromList(it.intent?.topping!!)
-        furhat.say("Okay, we remove ${it.intent?.topping} from your pizza")
-        reentry()
-    }
 }
 
 
-val RequestDestination : State = state(parent = OrderHandling) {
+val RequestDestination : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("Where would you like to go?")
     }
@@ -182,7 +157,7 @@ val RequestDestination : State = state(parent = OrderHandling) {
     }
 }
 
-val RequestDeparture : State = state(parent = OrderHandling) {
+val RequestDeparture : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("Where will you travel from? Currently there are only two options. ${Place().optionsToText()} ")
     }
@@ -198,7 +173,7 @@ val RequestDeparture : State = state(parent = OrderHandling) {
     }
 }
 
-val RequestMonth : State = state(parent = OrderHandling) {
+val RequestMonth : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("What month would you like to travel?")
     }
@@ -219,7 +194,7 @@ val RequestMonth : State = state(parent = OrderHandling) {
     }
 }
 
-val RequestDay : State = state(parent = OrderHandling) {
+val RequestDay : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("What day would you like to travel?")
     }
@@ -237,15 +212,15 @@ val RequestDay : State = state(parent = OrderHandling) {
         users.current.order.hour = rndhour // Set here already since they will be sent back to RequestDay if they disagree
         users.current.order.min = rndmin
         if (day_int in available) {
-            furhat.say("On that day there is a flight at ${rndhour} ${rndmin}.")
+            furhat.say("On that day there is a flight at $rndhour $rndmin o'clock.")
             users.current.order.day = it.intent.day
             goto(DayAccept)
         } else if (day_int + 1 in available) {
-            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int + 1}th at ${rndhour} ${rndmin}.")
+            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int + 1}th at ${rndhour} ${rndmin} o'clock.")
             users.current.order.day = it.intent.day
             goto(DayAccept)
         } else {
-            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int - 1}th at ${rndhour} ${rndmin}.")
+            furhat.say("Unfortunately, there are no flights available on that day. However, there is one on the ${day_int - 1}th at ${rndhour} ${rndmin} o'clock.")
             users.current.order.day = it.intent.day
             goto(DayAccept)
         }
@@ -257,7 +232,7 @@ val RequestDay : State = state(parent = OrderHandling) {
     }
 }
 
-val DayAccept : State = state(parent = OrderHandling) {
+val DayAccept : State = state(parent = BookHandling) {
 
     onEntry {
         furhat.ask("Would this be acceptable?")
@@ -273,7 +248,7 @@ val DayAccept : State = state(parent = OrderHandling) {
     }
 }
 
-val RequestDate : State = state(parent = OrderHandling) {
+val RequestDate : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("What date would you like to travel?")
     }
@@ -289,7 +264,7 @@ val RequestDate : State = state(parent = OrderHandling) {
     }
 }
 
-val requestsSeat : State = state(parent = OrderHandling) {
+val requestsSeat : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("Would you like to choose your seat?")
     }
@@ -311,7 +286,7 @@ val requestsSeat : State = state(parent = OrderHandling) {
 
 }
 
-val requestSeatSide : State = state(parent = OrderHandling) {
+val requestSeatSide : State = state(parent = BookHandling) {
     onEntry {
 
         furhat.ask(" Which side would you like to sit? We have ${Side().optionsToText()}")
@@ -338,7 +313,7 @@ val requestSeatSide : State = state(parent = OrderHandling) {
     }
 }
 
-val requestSeatNum : State = state(parent = OrderHandling)
+val requestSeatNum : State = state(parent = BookHandling)
 {
     onEntry {
         furhat.ask("Which Seat number would you like to sit? Select between 1 to 24")
@@ -373,7 +348,7 @@ val requestSeatNum : State = state(parent = OrderHandling)
     }
 }
 
-val RequestMealOption : State = state(parent = OrderHandling) {
+val RequestMealOption : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("Would you like to pre-order a meal?")
     }
@@ -400,40 +375,8 @@ val RequestMealOption : State = state(parent = OrderHandling) {
     }
 }
 
-
-// Request toppings
-val RequestTopping : State = state(parent = OrderHandling) {
-    onEntry {
-        furhat.ask("All our pizzas come with tomato and cheese. Do you want any extra topping?")
-    }
-
-    onReentry {
-        furhat.ask("Do you want any extra topping?")
-    }
-
-    onResponse<Yes> {
-        furhat.ask("What kind of topping do you want?")
-    }
-
-    onResponse<RequestOptionsIntent> {
-        raise(RequestToppingOptionsIntent())
-    }
-
-    onResponse<No> {
-        furhat.say("Okay, no extra topping")
-        users.current.order.topping = ListOfTopping()
-        goto(CheckOrder)
-    }
-
-    onResponse<ToppingIntent> {
-        furhat.say("Okay, ${it.intent.topping}")
-        users.current.order.topping = it.intent.topping
-        goto(CheckOrder)
-    }
-}
-
 // Request delivery time
-val RequestTime : State = state(parent = OrderHandling) {
+val RequestTime : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("At what time do you want to travel?")
     }
@@ -462,7 +405,7 @@ val RequestTime : State = state(parent = OrderHandling) {
 }
 
 // Request baggage
-val RequestBaggage : State = state(parent = OrderHandling) {
+val RequestBaggage : State = state(parent = BookHandling) {
     onEntry {
         random(
                 {
@@ -533,7 +476,7 @@ val RequestBaggage : State = state(parent = OrderHandling) {
 }
 
 // Confirming order
-val ConfirmOrder : State = state(parent = OrderHandling) {
+val ConfirmOrder : State = state(parent = BookHandling) {
     onEntry {
         furhat.ask("Does that sound good?")
     }
@@ -549,7 +492,7 @@ val ConfirmOrder : State = state(parent = OrderHandling) {
 }
 
 // Changing order
-val ChangeOrder = state(parent = OrderHandling) {
+val ChangeOrder = state(parent = BookHandling) {
     onEntry {
         furhat.ask("What do you want to change?")
     }
@@ -571,23 +514,38 @@ val ChangeOrder = state(parent = OrderHandling) {
     }
 
     onResponse<ChangeDestinationIntent> {
+        val order = users.current.order
         users.current.order.destination = null
+        order.month = null
+        order.day = null
+        order.baggage = null
+        order.seatingSelection = null
+        order.seatSide = null
+        order.seatNumber = null
+        order.mealChosen = null
+
         furhat.say("Alright. Directing you to destination selection.")
         goto(CheckOrder)
     }
 
     onResponse<ChangeDateIntent> {
-        users.current.order.date = null
-
+        val order = users.current.order
+        order.month = null
+        order.day = null
+        order.baggage = null
+        order.seatingSelection = null
+        order.seatSide = null
+        order.seatNumber = null
+        order.mealChosen = null
         furhat.say("Alright. Directing you to Date selection.")
         goto(CheckOrder)
     }
 
-    onResponse<ChangeTimeIntent> {
-        users.current.order.travelTime = null
-        furhat.say("Alright. Directing you to travel time selection.")
-        goto(CheckOrder)
-    }
+//    onResponse<ChangeTimeIntent> {
+//        users.current.order.travelTime = null
+//        furhat.say("Alright. Directing you to travel time selection.")
+//        goto(CheckOrder)
+//    }
 
     onResponse<ChangeBaggageIntent> {
         users.current.order.baggage = null
@@ -611,7 +569,7 @@ val ChangeOrder = state(parent = OrderHandling) {
 // Order completed
 val EndOrder = state {
     onEntry {
-        furhat.say("Alright. Feel free to come whenever you want to change your booking. Have a nice flight!")
+        furhat.say("Feel free to come whenever you want to change your booking. Have a nice flight!")
         goto(Idle)
     }
 }

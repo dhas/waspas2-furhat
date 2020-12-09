@@ -1,4 +1,4 @@
-package furhatos.app.pizzaorder.flow
+package furhatos.app.airportassistant.flow
 
 import furhatos.flow.kotlin.*
 import furhatos.util.*
