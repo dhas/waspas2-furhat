@@ -19,11 +19,11 @@ val Questions: State = state(Interaction) {
 val Start = state(parent = Questions) {
     onEntry {
         val order = users.current.order
-        if(order.destination != null && order.date != null && order.travelTime != null && order.baggage != null &&
+        if(order.destination != null && order.day != null && order.month != null && order.baggage != null &&
                     order.seatingSelection != null && order.mealChosen != null)
             reentry()
         else
-            furhat.ask("Welcome to Air One. How may I help you?")
+            furhat.ask("Welcome to WASP Airlines. How may I help you?")
 
     }
 
