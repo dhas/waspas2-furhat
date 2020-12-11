@@ -74,8 +74,8 @@ val CheckOrder = state {
 
             //Seat Selection Parts
             order.seatingSelection == null -> goto(requestsSeat)
-            (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
             (order.seatNumber == null && order.seatingSelection == true) -> goto(requestSeatNum)
+            (order.seatSide == null && order.seatingSelection == true) -> goto(requestSeatSide)
 
             order.mealChosen == null -> goto(RequestMealOption)
 
@@ -310,7 +310,7 @@ val requestSeatSide : State = state(parent = BookHandling) {
             it.intent.side!!.value == "Aisle" -> users.current.order.seatSide = "C"
         }
 
-        furhat.say("Okay, ${it.intent.side} also ${users.current.order.seatSide}")
+        furhat.say("Okay. ${it.intent.side} side it is. Your seat number is ${users.current.order.seatNumber}-${users.current.order.seatSide}")
         goto(CheckOrder)
     }
 }
