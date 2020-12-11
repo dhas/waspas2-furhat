@@ -36,7 +36,7 @@ open class BookTicketIntent : Intent(), TextGenerator {
 
     override fun toText(lang : Language) : String {
         if((this.destination != null) and (this.departure != null) and (this.day != null) and (this.month != null) and (this.mealChosen == true)){
-            var message = " You're flying [from $departure] [to $destination] on the [$month] [$day]. "
+            var message = " You're flying [from $departure] [to $destination] on [$month] the [$day]. "
             if(this.baggage != null && this.baggage == 0){
                 message += "You have chosen to not check in baggage. "
             }

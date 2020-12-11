@@ -46,7 +46,7 @@ val Start = state(parent = Questions) {
 
     onResponse<BookTicketIntent> {
         users.current.order.adjoin(it.intent)
-        furhat.say("Ok, you want to book a ticket ${it.intent}")
+        furhat.say("Ok, you want to book a ticket ${it.intent}.")
         goto(CheckOrder)
     }
 
